@@ -29,7 +29,7 @@ type thumbnail struct {
 	mediaType string
 }
 
-var videoThumbnails = map[uuid.UUID]thumbnail{}
+var videoThumbnails = map[uuid.UUID]thumbnail{}//global map of video ID's to thumbnail structs
 
 func main() {
 	godotenv.Load(".env")
