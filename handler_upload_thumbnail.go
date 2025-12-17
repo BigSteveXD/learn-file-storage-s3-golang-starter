@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"io"
 	//"log"
+	"encoding/base64"
 )
 
 func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Request) {
@@ -72,14 +73,21 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 
 	//Save thumbnail to global map
 	//add thumbnail to global map using video's ID as key
+	/*
 	videoThumbnails[videoID] = thumbnail{
 		data: imageData, 
 		mediaType: mediaTypeVar,
 	}
-
+	*/
 	//Update video metadata with new thumbnail URL, update record in db
 	//ex http://localhost:<port>/api/thumbnails/{videoID}
-	url := fmt.Sprintf("http://localhost:%s/api/thumbnails/%s", cfg.port, videoID)
+	//url := fmt.Sprintf("http://localhost:%s/api/thumbnails/%s", cfg.port, videoID)
+
+	//convert image data to base64 string
+	encodedVideoString := base64.StdEncoding.EncodeToString([]byte(imageData))
+	//create data url
+	//ex data:<media-type>;base64,<data>
+	url := fmt.Sprintf("data:%s;base64,%s", mediaTypeVar, encodedVideoString)
 	videoMetadata.ThumbnailURL = &url
 	err = cfg.db.UpdateVideo(videoMetadata)
 	if err != nil {
