@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"mime"
 )
 
 func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Request) {
@@ -50,9 +51,21 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	}
 	defer fileData.Close()
 	//get media type from files Content-Type header
-	mediaTypeVar := fileHeader.Header.Get("Content-Type")//*multipart.FileHeader
+	//mediaTypeVar := fileHeader.Header.Get("Content-Type")//*multipart.FileHeader
+	/*
 	if mediaTypeVar == "" {
 		respondWithError(w, http.StatusBadRequest, "couldn't get Content-Type for thumbnail", nil)
+		return
+	}
+	*/
+	//check if file uploaded is the correct type
+	mediaTypeVar, _, err := mime.ParseMediaType(fileHeader.Header.Get("Content-Type"))//params
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "error parsing media", err)
+		return
+	}
+	if mediaTypeVar != "image/jpeg" || mediaTypeVar != "image/png" {
+		respondWithError(w, http.StatusBadRequest, "wrong media type", err)
 		return
 	}
 
