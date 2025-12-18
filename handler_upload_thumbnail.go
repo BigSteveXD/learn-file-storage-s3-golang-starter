@@ -64,7 +64,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, http.StatusBadRequest, "error parsing media", err)
 		return
 	}
-	if mediaTypeVar != "image/jpeg" || mediaTypeVar != "image/png" {
+	if mediaTypeVar != "image/jpeg" && mediaTypeVar != "image/png" {
 		respondWithError(w, http.StatusBadRequest, "wrong media type", err)
 		return
 	}
