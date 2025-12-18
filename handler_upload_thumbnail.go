@@ -7,7 +7,10 @@ import (
 	"github.com/google/uuid"
 	"io"
 	//"log"
-	"encoding/base64"
+	//"encoding/base64"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Request) {
@@ -54,11 +57,13 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	}
 
 	//Read image data into byte slice
+	/*
 	imageData, err := io.ReadAll(fileData)//data
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "couldn't read file data", err)
 		return
 	}
+	*/
 
 	//Get video's metadata from SQLite db
 	videoMetadata, err := cfg.db.GetVideo(videoID)//video
@@ -84,10 +89,27 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	//url := fmt.Sprintf("http://localhost:%s/api/thumbnails/%s", cfg.port, videoID)
 
 	//convert image data to base64 string
-	encodedVideoString := base64.StdEncoding.EncodeToString([]byte(imageData))
+	//encodedVideoString := base64.StdEncoding.EncodeToString([]byte(imageData))
 	//create data url
 	//ex data:<media-type>;base64,<data>
-	url := fmt.Sprintf("data:%s;base64,%s", mediaTypeVar, encodedVideoString)
+	//url := fmt.Sprintf("data:%s;base64,%s", mediaTypeVar, encodedVideoString)
+
+	//save to file
+	///assets/<videoID>.<file_extension>
+	temp := videoID.String() + "." + strings.Replace(mediaTypeVar, "image/", "", -1)
+	newFile, err := os.Create(filepath.Join(cfg.assetsRoot, temp))
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "couldn't create file on server", err)
+		return
+	}
+	defer newFile.Close()
+	_, err = io.Copy(newFile, fileData)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error saving file", err)
+		return
+	}
+	url := fmt.Sprintf("http://localhost:%s/assets/%s.%s", cfg.port, videoID, mediaTypeVar)//port, videoID, file_extension
+
 	videoMetadata.ThumbnailURL = &url
 	err = cfg.db.UpdateVideo(videoMetadata)
 	if err != nil {
