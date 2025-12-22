@@ -116,7 +116,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 
 
 
-	assetPath := getAssetPath(videoID, mediaTypeVar)//mediaType
+	assetPath := getAssetPath(mediaTypeVar)//videoID, mediaTypeVar //mediaType
 	assetDiskPath := cfg.getAssetDiskPath(assetPath)
 
 
