@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"net/http"
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/google/uuid"
@@ -9,9 +9,11 @@ import (
 	//"log"
 	//"encoding/base64"
 	"os"
-	"path/filepath"
-	"strings"
+	//"path/filepath"
+	//"strings"
 	"mime"
+	//"crypto/rand"
+	//"encoding/base64"
 )
 
 func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +36,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	fmt.Println("uploading thumbnail for video", videoID, "by user", userID)
+	//fmt.Println("uploading thumbnail for video", videoID, "by user", userID)
 
 
 
@@ -88,6 +90,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, http.StatusUnauthorized, "authenicated user and video owner don't match", nil)
 		return
 	}
+	
 
 	//Save thumbnail to global map
 	//add thumbnail to global map using video's ID as key
@@ -109,8 +112,16 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 
 	//save to file
 	///assets/<videoID>.<file_extension>
-	temp := videoID.String() + "." + strings.Replace(mediaTypeVar, "image/", "", -1)
-	newFile, err := os.Create(filepath.Join(cfg.assetsRoot, temp))
+	//temp := videoID.String() + "." + strings.Replace(mediaTypeVar, "image/", "", -1)
+
+
+
+	assetPath := getAssetPath(videoID, mediaTypeVar)//mediaType
+	assetDiskPath := cfg.getAssetDiskPath(assetPath)
+
+
+	//newFile, err := os.Create(filepath.Join(cfg.assetsRoot, temp))
+	newFile, err := os.Create(assetDiskPath)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "couldn't create file on server", err)
 		return
@@ -121,12 +132,12 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, http.StatusInternalServerError, "Error saving file", err)
 		return
 	}
-	url := fmt.Sprintf("http://localhost:%s/assets/%s.%s", cfg.port, videoID, mediaTypeVar)//port, videoID, file_extension
+	
+	url := cfg.getAssetURL(assetPath)
 
 	videoMetadata.ThumbnailURL = &url
 	err = cfg.db.UpdateVideo(videoMetadata)
 	if err != nil {
-		delete(videoThumbnails, videoID)
 		respondWithError(w, http.StatusInternalServerError, "couldn't update video", err)
 		return
 	}

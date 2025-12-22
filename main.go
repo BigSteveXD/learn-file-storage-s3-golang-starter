@@ -28,7 +28,6 @@ type thumbnail struct {
 	data      []byte
 	mediaType string
 }
-
 var videoThumbnails = map[uuid.UUID]thumbnail{}//global map of video ID's to thumbnail structs
 
 func main() {
@@ -106,7 +105,8 @@ func main() {
 	mux.Handle("/app/", appHandler)
 
 	assetsHandler := http.StripPrefix("/assets", http.FileServer(http.Dir(assetsRoot)))
-	mux.Handle("/assets/", cacheMiddleware(assetsHandler))
+	//assetsHandler := http.FileServer(http.Dir(assetsRoot))
+	mux.Handle("/assets/", noCacheMiddleware(assetsHandler))
 
 	mux.HandleFunc("POST /api/login", cfg.handlerLogin)
 	mux.HandleFunc("POST /api/refresh", cfg.handlerRefresh)
